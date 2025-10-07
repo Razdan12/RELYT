@@ -15,16 +15,8 @@ import useMemberStore from "@/store/member.store";
 import useAuthStore from "@/store/auth.store";
 
 export default function AddMember() {
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("viewer");
-
-  function validateEmail(e: string) {
-    try {
-      return /\S+@\S+\.\S+/.test(e);
-    } catch {
-      return false;
-    }
-  }
+  const [userId, setUserId] = useState("");
+  const [role, setRole] = useState("MEMBER");
 
   const InviteMember = useMemberStore((s) => s.InviteMember);
   const { project } = useAuthStore();
@@ -34,10 +26,18 @@ export default function AddMember() {
     if (project?.activeProjectId) GetMembers(project.activeProjectId);
   }, [project?.activeProjectId]);
 
+  function validateUserId(id: string) {
+    try {
+      return /^[0-9a-fA-F-]{36}$/.test(id);
+    } catch {
+      return false;
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validateEmail(email)) {
-      toast.error("Alamat email tidak valid");
+    if (!validateUserId(userId)) {
+      toast.error("UserId tidak valid (harus UUID)");
       return;
     }
     if (!project?.activeProjectId) {
@@ -45,11 +45,9 @@ export default function AddMember() {
       return;
     }
 
-    await InviteMember(project.activeProjectId, { email, role });
-    // if no error, assume success: clear form
-    setEmail("");
-    setRole("viewer");
-    // refresh list
+    await InviteMember(project.activeProjectId, { userId, role });
+    setUserId("");
+    setRole("MEMBER");
     GetMembers(project.activeProjectId);
   }
 
@@ -72,9 +70,11 @@ export default function AddMember() {
           <Table>
             <TableHeader className="bg-[#121A26]/50">
               <TableRow className="border-white/10 hover:bg-transparent">
+                <TableHead className="text-white font-medium">User ID</TableHead>
+                <TableHead className="text-white font-medium">Name</TableHead>
                 <TableHead className="text-white font-medium">Email</TableHead>
                 <TableHead className="text-white font-medium">Role</TableHead>
-                <TableHead className="text-white font-medium">Status</TableHead>
+                <TableHead className="text-white font-medium">Joined</TableHead>
                 <TableHead className="text-white font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,10 +96,12 @@ export default function AddMember() {
               )}
 
               {members?.map((m: any) => (
-                <TableRow key={m.email} className="border-white/10 hover:bg-white/5">
-                  <TableCell className="font-medium text-white">{m.email}</TableCell>
-                  <TableCell className="text-muted-foreground">{m.role}</TableCell>
-                  <TableCell className="text-muted-foreground">{m.status ?? "active"}</TableCell>
+                <TableRow key={m.userId ?? m.email ?? m.id} className="border-white/10 hover:bg-white/5">
+                  <TableCell className="font-medium text-white">{m.userId ?? m.id ?? "-"}</TableCell>
+                  <TableCell className="text-white">{m.name ?? m.fullName ?? "-"}</TableCell>
+                  <TableCell className="text-muted-foreground">{m.email ?? "-"}</TableCell>
+                  <TableCell className="text-muted-foreground">{m.role ?? m.effectiveRole ?? "MEMBER"}</TableCell>
+                  <TableCell className="text-muted-foreground">{m.joinedAt ? new Date(m.joinedAt).toLocaleString() : m.createdAt ? new Date(m.createdAt).toLocaleString() : "-"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={() => toast("Not implemented")}>Action</Button>
@@ -117,11 +119,11 @@ export default function AddMember() {
           <span>Invite Member</span>
           <form className="mt-5 space-y-1 w-full" onSubmit={handleSubmit}>
             <div className="fieldset">
-              <label className="fieldset-legend">Email</label>
+              <label className="block text-sm font-medium text-muted-foreground">User ID (UUID)</label>
               <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                placeholder="7581901a-bd9d-49a2-8220-dcf845041eef"
                 className="input input-bordered w-full mt-1"
               />
             </div>
@@ -129,15 +131,14 @@ export default function AddMember() {
             <div className="fieldset">
               <label className="fieldset-legend">Role</label>
               <select value={role} onChange={(e) => setRole(e.target.value)} className="select select-bordered w-full mt-1">
-                <option value="viewer">Viewer</option>
-                <option value="editor">Editor</option>
-                <option value="admin">Admin</option>
+                <option value="MEMBER">Member</option>
+                <option value="ADMIN">Admin</option>
               </select>
             </div>
 
             <div className="flex justify-end mt-5">
-              <button className="btn bg-cyan-500 rounded-2xl w-32" type="submit">
-                Invite
+              <button className="btn btn-primary" type="submit">
+                Invite Member
               </button>
             </div>
           </form>

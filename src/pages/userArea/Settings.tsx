@@ -1,5 +1,6 @@
 import useAuthStore from "@/store/auth.store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getProjectDetail } from "@/midleware/Member";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,6 +14,30 @@ import {
 
 export default function Settings() {
   const { user, project, setProject } = useAuthStore();
+  // project object from auth store only contains activeProjectId/effectiveRole.
+  // Fetch full project detail separately to show settings fields (name, slug, owner, timezone, createdAt).
+  const [projectDetail, setProjectDetail] = useState<any>(null);
+  const [, setLoadingDetail] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      if (!project?.activeProjectId) return setProjectDetail(null);
+      setLoadingDetail(true);
+      try {
+        const res = await getProjectDetail(project.activeProjectId);
+        if (mounted) setProjectDetail(res);
+      } catch (e) {
+        if (mounted) setProjectDetail(null);
+      } finally {
+        if (mounted) setLoadingDetail(false);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [project?.activeProjectId]);
   const [newProject, setNewProject] = useState("");
 
   function handleChangeProject(e: React.FormEvent) {
@@ -43,12 +68,28 @@ export default function Settings() {
               </TableHeader>
               <TableBody>
                 <TableRow className="border-white/10 hover:bg-white/5">
-                  <TableCell className="text-white">Active Project ID</TableCell>
+                  <TableCell className="text-white">Project ID</TableCell>
                   <TableCell className="text-muted-foreground">{project?.activeProjectId ?? "-"}</TableCell>
                 </TableRow>
                 <TableRow className="border-white/10 hover:bg-white/5">
-                  <TableCell className="text-white">Effective Role</TableCell>
-                  <TableCell className="text-muted-foreground">{project?.effectiveRole ?? "-"}</TableCell>
+                  <TableCell className="text-white">Project Name</TableCell>
+                  <TableCell className="text-muted-foreground">{projectDetail?.name ?? "-"}</TableCell>
+                </TableRow>
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">Slug</TableCell>
+                  <TableCell className="text-muted-foreground">{projectDetail?.slug ?? "-"}</TableCell>
+                </TableRow>
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">Owner</TableCell>
+                  <TableCell className="text-muted-foreground">{projectDetail?.owner?.email ?? projectDetail?.ownerEmail ?? "-"}</TableCell>
+                </TableRow>
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">Timezone</TableCell>
+                  <TableCell className="text-muted-foreground">{projectDetail?.timezone ?? "-"}</TableCell>
+                </TableRow>
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">Created</TableCell>
+                  <TableCell className="text-muted-foreground">{projectDetail?.createdAt ? new Date(projectDetail.createdAt).toLocaleString() : "-"}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
