@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { inviteMember, getMembers } from "@/midleware/Member";
+import { addProjectMember, getProjectDetail } from "@/midleware/Member";
 import getErrorMessage from "@/midleware/HelperApi";
 import { toast } from "sonner";
 
@@ -9,7 +9,7 @@ interface MemberState {
   isInviting: boolean;
   error: string | null;
   GetMembers: (projectId: string) => Promise<void>;
-  InviteMember: (projectId: string, data: { email: string; role: string }) => Promise<void>;
+  InviteMember: (projectId: string, data: { userId: string; role: string }) => Promise<void>;
 }
 
 const useMemberStore = create<MemberState>((set) => ({
@@ -20,8 +20,11 @@ const useMemberStore = create<MemberState>((set) => ({
   GetMembers: async (projectId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await getMembers(projectId);
-      set({ members: res, isLoading: false });
+      const res = await getProjectDetail(projectId);
+      // project detail may contain members in different shapes
+      const members = res?.members ?? res?.data?.members ?? res?.project?.members ?? res?.items ?? res ?? [];
+      const items = Array.isArray(members) ? members : members?.items ?? members?.data ?? [];
+      set({ members: items, isLoading: false });
     } catch (err) {
       const msg = getErrorMessage(err);
       // eslint-disable-next-line no-console
@@ -37,7 +40,7 @@ const useMemberStore = create<MemberState>((set) => ({
   InviteMember: async (projectId, data) => {
     set({ isInviting: true, error: null });
     try {
-      const req = inviteMember(projectId, data);
+      const req = addProjectMember(projectId, data);
       toast.promise(req, {
         loading: "Inviting member...",
         success: "Invitation sent",
@@ -45,6 +48,14 @@ const useMemberStore = create<MemberState>((set) => ({
       });
       await req;
       set({ isInviting: false });
+      // refresh members list if possible
+      try {
+        // call GetMembers safely
+        const getState = useMemberStore.getState();
+        if (getState.GetMembers) await getState.GetMembers(projectId);
+      } catch (e) {
+        // ignore refresh errors
+      }
     } catch (err) {
       const msg = getErrorMessage(err);
       // eslint-disable-next-line no-console

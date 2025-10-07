@@ -76,7 +76,7 @@ const useWebhookStore = create<WebhookState>((set, get) => ({
     try {
   // use updateWebhook to toggle/enabled state via PUT
   const existing = get().list?.find((w: WebhookItem) => w.id === id);
-  const payload = existing ? { ...existing, enabled: !existing.enabled } : { enabled: true };
+  const payload = { enabled: !(existing?.enabled ?? false) };
   const req = updateWebhook(projectId, id, payload);
       toast.promise(req, {
         loading: "Toggling webhook...",

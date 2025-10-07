@@ -1,6 +1,7 @@
 import useAuthStore from "@/store/auth.store";
 import { useState, useEffect } from "react";
 import { getProjectDetail } from "@/midleware/Member";
+import { createProject, updateProject } from "@/midleware/Project";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,7 +27,10 @@ export default function Settings() {
       setLoadingDetail(true);
       try {
         const res = await getProjectDetail(project.activeProjectId);
-        if (mounted) setProjectDetail(res);
+        if (mounted) {
+          setProjectDetail(res);
+          setUpdateName(res?.name ?? "");
+        }
       } catch (e) {
         if (mounted) setProjectDetail(null);
       } finally {
@@ -38,15 +42,42 @@ export default function Settings() {
       mounted = false;
     };
   }, [project?.activeProjectId]);
-  const [newProject, setNewProject] = useState("");
+  
+  const [editName, setEditName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [updateName, setUpdateName] = useState("");
 
-  function handleChangeProject(e: React.FormEvent) {
+  async function handleCreateProject(e: React.FormEvent) {
     e.preventDefault();
-    if (!newProject) return toast.error("Project id required");
-    setProject({ activeProjectId: newProject, effectiveRole: project?.effectiveRole ?? "admin" });
-    toast.success("Active project updated");
-    setNewProject("");
+    if (!editName) return toast.error("Project name required");
+    try {
+      const res = await createProject({ name: editName });
+      toast.success("Project created");
+      setEditName("");
+      // optionally set active project
+      // defensive id extraction: handle data.id, projectId, id, project.id
+      const newId = res?.id ?? res?.projectId ?? res?.data?.id ?? res?.project?.id;
+      if (newId) setProject({ activeProjectId: newId, effectiveRole: "ADMIN" });
+    } catch (e) {
+      toast.error("Failed to create project");
+    }
   }
+
+  async function handleSaveSettings() {
+    if (!project?.activeProjectId) return toast.error("No active project");
+    try {
+      setIsSaving(true);
+      const nameToSave = updateName?.length ? updateName : projectDetail?.name;
+      await updateProject(project.activeProjectId, { name: nameToSave });
+      toast.success("Project settings updated");
+    } catch (e) {
+      toast.error("Failed to update project");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  
 
   return (
     <Card className="glass-card bg-[#00E5FF]/5 border-[#00E5FF]/20 hover-scale transition-all duration-300">
@@ -94,10 +125,20 @@ export default function Settings() {
               </TableBody>
             </Table>
 
-            <form onSubmit={handleChangeProject} className="flex gap-2 p-4">
-              <input value={newProject} onChange={(e) => setNewProject(e.target.value)} placeholder="Enter project id" className="input input-bordered flex-1" />
-              <button className="btn bg-cyan-500 rounded-2xl px-4" type="submit">Change</button>
+            {/* Removed Enter Project ID form as requested */}
+            <form onSubmit={handleCreateProject} className="flex gap-2 p-4">
+              <input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="New project name" className="input input-bordered flex-1" />
+              <button className="btn bg-green-500 rounded-2xl px-4" type="submit">Create Project</button>
             </form>
+            <div className="p-4 flex justify-end">
+              <button
+                className="btn bg-cyan-500 rounded-2xl px-4"
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save Settings"}
+              </button>
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/10 overflow-hidden">

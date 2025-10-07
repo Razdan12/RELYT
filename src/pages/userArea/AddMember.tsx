@@ -12,6 +12,8 @@ import {
 import Modal, { openModal } from "@/components/ui/Modal";
 import { toast } from "sonner";
 import useMemberStore from "@/store/member.store";
+import { changeProjectMemberRole, removeProjectMember } from "@/midleware/Member";
+import Swal from "sweetalert2";
 import useAuthStore from "@/store/auth.store";
 
 export default function AddMember() {
@@ -49,6 +51,43 @@ export default function AddMember() {
     setUserId("");
     setRole("MEMBER");
     GetMembers(project.activeProjectId);
+  }
+
+  async function handleChangeRole(userId: string) {
+    if (!project?.activeProjectId) return;
+    const { value: newRole } = await Swal.fire({
+      title: 'Change role',
+      input: 'select',
+      inputOptions: { MEMBER: 'Member', ADMIN: 'Admin' },
+      inputValue: 'MEMBER',
+      showCancelButton: true,
+    });
+    if (!newRole) return;
+    try {
+      await changeProjectMemberRole(project.activeProjectId, { userId, role: newRole });
+      toast.success('Role updated');
+      if (GetMembers) GetMembers(project.activeProjectId);
+    } catch (e) {
+      toast.error('Failed to change role');
+    }
+  }
+
+  async function handleRemove(userId: string) {
+    if (!project?.activeProjectId) return;
+    const result = await Swal.fire({
+      title: 'Remove member?',
+      text: 'This will remove the member from the project.',
+      icon: 'warning',
+      showCancelButton: true,
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await removeProjectMember(project.activeProjectId, { userId });
+      toast.success('Member removed');
+      if (GetMembers) GetMembers(project.activeProjectId);
+    } catch (e) {
+      toast.error('Failed to remove member');
+    }
   }
 
   return (
@@ -104,7 +143,8 @@ export default function AddMember() {
                   <TableCell className="text-muted-foreground">{m.joinedAt ? new Date(m.joinedAt).toLocaleString() : m.createdAt ? new Date(m.createdAt).toLocaleString() : "-"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => toast("Not implemented")}>Action</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleChangeRole(m.userId ?? m.id)}>Change Role</Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleRemove(m.userId ?? m.id)}>Remove</Button>
                     </div>
                   </TableCell>
                 </TableRow>
