@@ -3,9 +3,10 @@ import { ArrowRight, Play, Shield, Clock, Globe } from "lucide-react";
 import { BorderBeam } from "../ui/border-beam";
 import { useNavigate } from "react-router-dom";
 import { listed } from "@/constant/listed";
+import TextType from "../TextType";
 
 export function Hero() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Effects */}
@@ -26,10 +27,24 @@ export function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 text-balance">
-              <span className="text-gradient-cyan">Monitor Services</span>
+            <h1 className=" font-bold mb-6 text-balance">
+              <span className="text-gradient-cyan text-5xl lg:text-7xl">Monitor Services</span>
               <br />
-              <span className="text-white">Without Drama.</span>
+
+              <span className="text-white text-3xl lg:text-5xl">
+                Without{" "}
+                <TextType
+                  text={[
+                    "Drama",
+                    "Complicated",
+                    "Dizzy"
+                  ]}
+                  typingSpeed={90}
+                  pauseDuration={1500}
+                  showCursor={true}
+                  cursorCharacter="|"
+                />
+              </span>
             </h1>
 
             {/* Subtitle */}
@@ -40,8 +55,9 @@ export function Hero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-              <button className="btn btn-ghost hover:border-[#00E5FF] bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black font-semibold rounded-full px-8 text-lg glow-cyan group"
-              onClick={() => navigate(listed.register)}
+              <button
+                className="btn btn-ghost hover:border-[#00E5FF] bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black font-semibold rounded-full px-8 text-lg glow-cyan group"
+                onClick={() => navigate(listed.register)}
               >
                 Start Free
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
