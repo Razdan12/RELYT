@@ -10,17 +10,14 @@ export function snakeToCamel(s: string) {
   return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }
 
-export function normalizeKeys(obj: any): any {
+export function normalizeKeys<T = any>(obj: any): T {
   if (obj === null || obj === undefined) return obj;
-  if (Array.isArray(obj)) return obj.map(normalizeKeys);
+  if (Array.isArray(obj)) return obj.map((v) => normalizeKeys(v)) as any;
   if (typeof obj !== 'object') return obj;
 
-  const out: any = {};
-  Object.keys(obj).forEach((k) => {
-    const camel = snakeToCamel(k);
-    out[camel] = normalizeKeys(obj[k]);
-  });
-  return out;
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [snakeToCamel(k), normalizeKeys(v)])
+  ) as any;
 }
 
 export function normalizeResponse(resp: any) {

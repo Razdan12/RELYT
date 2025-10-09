@@ -18,7 +18,7 @@ export default function Settings() {
   // project object from auth store only contains activeProjectId/effectiveRole.
   // Fetch full project detail separately to show settings fields (name, slug, owner, timezone, createdAt).
   const [projectDetail, setProjectDetail] = useState<any>(null);
-  const [, setLoadingDetail] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -56,7 +56,10 @@ export default function Settings() {
       setEditName("");
       // optionally set active project
       // defensive id extraction: handle data.id, projectId, id, project.id
-      const newId = res?.id ?? res?.projectId ?? res?.data?.id ?? res?.project?.id;
+  // middleware now returns ProjectDetail but older backends might nest the id.
+  // Use defensive any casts to accept both shapes.
+  const anyRes: any = res;
+  const newId = anyRes?.id ?? anyRes?.projectId ?? anyRes?.data?.id ?? anyRes?.project?.id;
       if (newId) setProject({ activeProjectId: newId, effectiveRole: "ADMIN" });
     } catch (e) {
       toast.error("Failed to create project");
@@ -130,6 +133,16 @@ export default function Settings() {
               <input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="New project name" className="input input-bordered flex-1" />
               <button className="btn bg-green-500 rounded-2xl px-4" type="submit">Create Project</button>
             </form>
+            <div className="p-4">
+              <label className="text-sm text-white mb-2 block">Edit Project Name</label>
+              <input
+                value={updateName}
+                onChange={(e) => setUpdateName(e.target.value)}
+                placeholder="Project name"
+                className="input input-bordered w-full"
+                disabled={loadingDetail}
+              />
+            </div>
             <div className="p-4 flex justify-end">
               <button
                 className="btn bg-cyan-500 rounded-2xl px-4"

@@ -28,8 +28,9 @@ const useWebhookStore = create<WebhookState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
   const res = await getWebhooks(projectId);
-  // normalize response: accept array or { items: [] } or { data: [] }
-  const items = Array.isArray(res) ? res : res?.items ?? res?.data ?? [];
+  // middleware returns Webhook[]; accept defensive shapes via any
+  const anyRes: any = res;
+  const items = Array.isArray(anyRes) ? anyRes : anyRes?.items ?? anyRes?.data ?? [];
       set({ list: items, isLoading: false });
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -49,14 +50,15 @@ const useWebhookStore = create<WebhookState>((set, get) => ({
   CreateWebhook: async (projectId: string, data: { name?: string; url: string; signingSecret?: string }) => {
     set({ isLoading: true, error: null });
     try {
-      const req = createWebhook(projectId, data);
+      const req = createWebhook(projectId, data as any);
       toast.promise(req, {
         loading: "Creating webhook...",
         success: "Webhook created",
         error: (err) => getErrorMessage(err, "Create failed"),
       });
   const res = await req;
-  const item = Array.isArray(res) ? res[0] : res?.data ?? res;
+  const anyRes: any = res;
+  const item = Array.isArray(anyRes) ? anyRes[0] : anyRes?.data ?? anyRes;
   set((state) => ({ list: state.list ? [item, ...state.list] : [item], isLoading: false }));
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -77,14 +79,15 @@ const useWebhookStore = create<WebhookState>((set, get) => ({
   // use updateWebhook to toggle/enabled state via PUT
   const existing = get().list?.find((w: WebhookItem) => w.id === id);
   const payload = { enabled: !(existing?.enabled ?? false) };
-  const req = updateWebhook(projectId, id, payload);
+  const req = updateWebhook(projectId, id, payload as any);
       toast.promise(req, {
         loading: "Toggling webhook...",
         success: "Webhook updated",
         error: (err) => getErrorMessage(err, "Update failed"),
       });
   const res = await req;
-  const item = Array.isArray(res) ? res[0] : res?.data ?? res;
+  const anyRes2: any = res;
+  const item = Array.isArray(anyRes2) ? anyRes2[0] : anyRes2?.data ?? anyRes2;
   set((state) => ({ list: state.list ? state.list.map((w) => (w.id === id ? item : w)) : state.list, isLoading: false }));
     } catch (err) {
       const msg = getErrorMessage(err);

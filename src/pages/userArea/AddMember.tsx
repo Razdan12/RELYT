@@ -29,11 +29,7 @@ export default function AddMember() {
   }, [project?.activeProjectId]);
 
   function validateUserId(id: string) {
-    try {
-      return /^[0-9a-fA-F-]{36}$/.test(id);
-    } catch {
-      return false;
-    }
+    return /^[0-9a-fA-F-]{36}$/.test(id);
   }
 
   async function handleSubmit(e: React.FormEvent) {

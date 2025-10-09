@@ -19,8 +19,8 @@ const ProjectStore = create<PropsState>((set) => ({
   getAllProject: async (payload) => {
     set({ isLoading: true, error: null });
     try {
-      const req = await getAllProject(payload);
-      set({ isLoading: false, ProjectList: req.data });
+  const req = await getAllProject(payload);
+  set({ isLoading: false, ProjectList: req });
     } catch (err) {
       set({ error: getErrorMessage(err), isLoading: false });
     }

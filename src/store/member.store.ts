@@ -20,11 +20,12 @@ const useMemberStore = create<MemberState>((set) => ({
   GetMembers: async (projectId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await getProjectDetail(projectId);
-      // project detail may contain members in different shapes
-      const members = res?.members ?? res?.data?.members ?? res?.project?.members ?? res?.items ?? res ?? [];
-      const items = Array.isArray(members) ? members : members?.items ?? members?.data ?? [];
-      set({ members: items, isLoading: false });
+  const res = await getProjectDetail(projectId);
+  // ProjectDetail may contain members directly; accept fallback shapes defensively
+  const anyRes: any = res;
+  const members = anyRes?.members ?? anyRes?.data?.members ?? anyRes?.project?.members ?? anyRes?.items ?? anyRes ?? [];
+  const items = Array.isArray(members) ? members : members?.items ?? members?.data ?? [];
+  set({ members: items, isLoading: false });
     } catch (err) {
       const msg = getErrorMessage(err);
       // eslint-disable-next-line no-console
@@ -54,7 +55,9 @@ const useMemberStore = create<MemberState>((set) => ({
         const getState = useMemberStore.getState();
         if (getState.GetMembers) await getState.GetMembers(projectId);
       } catch (e) {
-        // ignore refresh errors
+        // ignore refresh errors, but log for debugging
+        // eslint-disable-next-line no-console
+        console.error('Failed to refresh members list after invite:', e);
       }
     } catch (err) {
       const msg = getErrorMessage(err);
