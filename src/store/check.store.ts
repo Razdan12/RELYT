@@ -3,10 +3,11 @@ import getErrorMessage from "@/midleware/HelperApi";
 
 import type { Paginate } from "@/types/ResponApi";
 import type { Check } from "@/types/Check";
+import type { CheckItem } from "@/midleware/HttpCheck.api";
 import { getAllCheck } from "@/midleware/HttpCheck.api";
 
 interface PropsState {
-  checkList: Paginate<Check> | null;
+  checkList: Paginate<Check> | CheckItem[] | null;
   isLoading: boolean;
   error: string | null;
   getAllCheck: (id: string, payload?: string) => void;
@@ -21,8 +22,8 @@ const CheckStore = create<PropsState>((set) => ({
   getAllCheck: async (id: string, payload) => {
     set({ isLoading: true, error: null });
     try {
-      const req = await getAllCheck(id, payload);
-      set({ isLoading: false, checkList: req });
+  const req = await getAllCheck(id, payload);
+  set({ isLoading: false, checkList: req as any });
     } catch (err) {
       set({ error: getErrorMessage(err), isLoading: false });
     }
