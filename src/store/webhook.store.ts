@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import getErrorMessage from "@/midleware/HelperApi";
-import { getWebhooks, createWebhook, toggleWebhook, deleteWebhook } from "@/midleware/Webhook";
+import { getWebhooks, createWebhook, updateWebhook, deleteWebhook } from "@/midleware/Webhook";
 import { toast } from "sonner";
 
 interface WebhookItem {
@@ -14,12 +14,12 @@ interface WebhookState {
   isLoading: boolean;
   error: string | null;
   GetWebhooks: (projectId: string) => Promise<void>;
-  CreateWebhook: (projectId: string, data: { url: string }) => Promise<void>;
+  CreateWebhook: (projectId: string, data: { name?: string; url: string; signingSecret?: string }) => Promise<void>;
   ToggleWebhook: (projectId: string, id: string) => Promise<void>;
   DeleteWebhook: (projectId: string, id: string) => Promise<void>;
 }
 
-const useWebhookStore = create<WebhookState>((set) => ({
+const useWebhookStore = create<WebhookState>((set, get) => ({
   list: null,
   isLoading: false,
   error: null,
@@ -27,8 +27,11 @@ const useWebhookStore = create<WebhookState>((set) => ({
   GetWebhooks: async (projectId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await getWebhooks(projectId);
-      set({ list: res, isLoading: false });
+  const res = await getWebhooks(projectId);
+  // middleware returns Webhook[]; accept defensive shapes via any
+  const anyRes: any = res;
+  const items = Array.isArray(anyRes) ? anyRes : anyRes?.items ?? anyRes?.data ?? [];
+      set({ list: items, isLoading: false });
     } catch (err) {
       const msg = getErrorMessage(err);
       // show status for debugging if available
@@ -44,17 +47,19 @@ const useWebhookStore = create<WebhookState>((set) => ({
     }
   },
 
-  CreateWebhook: async (projectId: string, data) => {
+  CreateWebhook: async (projectId: string, data: { name?: string; url: string; signingSecret?: string }) => {
     set({ isLoading: true, error: null });
     try {
-      const req = createWebhook(projectId, data);
+      const req = createWebhook(projectId, data as any);
       toast.promise(req, {
         loading: "Creating webhook...",
         success: "Webhook created",
         error: (err) => getErrorMessage(err, "Create failed"),
       });
-      const res = await req;
-      set((state) => ({ list: state.list ? [res, ...state.list] : [res], isLoading: false }));
+  const res = await req;
+  const anyRes: any = res;
+  const item = Array.isArray(anyRes) ? anyRes[0] : anyRes?.data ?? anyRes;
+  set((state) => ({ list: state.list ? [item, ...state.list] : [item], isLoading: false }));
     } catch (err) {
       const msg = getErrorMessage(err);
       // eslint-disable-next-line no-console
@@ -71,14 +76,19 @@ const useWebhookStore = create<WebhookState>((set) => ({
   ToggleWebhook: async (projectId: string, id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const req = toggleWebhook(projectId, id);
+  // use updateWebhook to toggle/enabled state via PUT
+  const existing = get().list?.find((w: WebhookItem) => w.id === id);
+  const payload = { enabled: !(existing?.enabled ?? false) };
+  const req = updateWebhook(projectId, id, payload as any);
       toast.promise(req, {
         loading: "Toggling webhook...",
         success: "Webhook updated",
         error: (err) => getErrorMessage(err, "Update failed"),
       });
-      const res = await req;
-      set((state) => ({ list: state.list ? state.list.map((w) => (w.id === id ? res : w)) : state.list, isLoading: false }));
+  const res = await req;
+  const anyRes2: any = res;
+  const item = Array.isArray(anyRes2) ? anyRes2[0] : anyRes2?.data ?? anyRes2;
+  set((state) => ({ list: state.list ? state.list.map((w) => (w.id === id ? item : w)) : state.list, isLoading: false }));
     } catch (err) {
       const msg = getErrorMessage(err);
       // eslint-disable-next-line no-console

@@ -1,7 +1,9 @@
 import apiClient from './index';
 
+import type { User } from "@/types/auth";
+
 export interface AuthData {
-  user: any;
+  user: User;
   token: {
     access_token: string;
     refresh_token: string;
@@ -61,7 +63,7 @@ export const signupAPI = async (
 };
 
 export const refreshTokenAPI = async (
-  data: any
+  data: { refresh_token: string }
 ): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>('/v1/auth/refresh-token', data);
   return response.data;

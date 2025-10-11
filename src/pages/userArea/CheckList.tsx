@@ -40,6 +40,7 @@ import { formatTimestamp } from "@/helpers/FormatTimeStamp";
 import useAuthStore from "@/store/auth.store";
 
 import type { StatusCheck } from "@/types/Metrics";
+import type { Check } from "@/types/Check";
 import CheckStore from "@/store/check.store";
 import Modal, { closeModal, openModal } from "@/components/ui/Modal";
 import { checkSchema, type CheckFormValues } from "@/schema/check.schema";
@@ -48,6 +49,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { createCheck, DeleteCheck } from "@/midleware/HttpCheck.api";
 import { toast } from "sonner";
 import getErrorMessage from "@/midleware/HelperApi";
+
 function StatusBadge(status: boolean) {
   const statusConfig = {
     up: {
@@ -60,7 +62,7 @@ function StatusBadge(status: boolean) {
       label: "Stoped",
       className: "bg-[#FF4D6D]/10 text-[#FF4D6D] border-[#FF4D6D]/30",
     },
-  };
+  } as const;
   const running = status ? "up" : "down";
   const config = statusConfig[running];
   const Icon = config.icon;
@@ -118,6 +120,8 @@ export function ChecksList() {
     getAllCheck(project?.activeProjectId ?? "");
   }, [project, triger]);
 
+  const items: Check[] = Array.isArray(checkList) ? (checkList as Check[]) : (checkList?.items ?? []);
+
   const onSubmit = async (formData: CheckFormValues) => {
     try {
       const id = project?.activeProjectId ?? "";
@@ -167,12 +171,6 @@ export function ChecksList() {
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="relative flex-1 min-w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            {/* <Input
-              placeholder="Cari nama check..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-[#121A26] border-white/20 text-white"
-            /> */}
           </div>
 
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -207,71 +205,46 @@ export function ChecksList() {
               <TableRow className="border-white/10 hover:bg-transparent">
                 <TableHead className="text-white font-medium">Name</TableHead>
                 <TableHead className="text-white font-medium">Type</TableHead>
-                <TableHead className="text-white font-medium">
-                  Interval
-                </TableHead>
+                <TableHead className="text-white font-medium">Interval</TableHead>
                 <TableHead className="text-white font-medium">Status</TableHead>
-                <TableHead className="text-white font-medium">
-                  Last Run
-                </TableHead>
+                <TableHead className="text-white font-medium">Last Run</TableHead>
                 <TableHead className="text-white font-medium">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {checkList?.items?.map((check) => (
-                <TableRow
-                  key={check.id}
-                  className="border-white/10 hover:bg-white/5"
-                >
-                  <TableCell className="font-medium text-white">
-                    {check.name}
-                  </TableCell>
+              {items.map((check: Check) => (
+                <TableRow key={check.id} className="border-white/10 hover:bg-white/5">
+                  <TableCell className="font-medium text-white">{check.name}</TableCell>
                   <TableCell>
                     <TypeBadge type={check.type} />
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {check.intervalSec}s
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{check.intervalSec}s</TableCell>
                   <TableCell>{StatusBadge(check.enabled)}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm">
                         {check?.runs[0]?.code && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs border-[#14F195]/30 text-[#14F195]"
-                          >
+                          <Badge variant="outline" className="text-xs border-[#14F195]/30 text-[#14F195]">
                             {check?.runs[0]?.code}
                           </Badge>
                         )}
                         {check?.runs[0]?.latencyMs && (
-                          <span className="text-muted-foreground">
-                            {check?.runs[0]?.latencyMs}ms
-                          </span>
+                          <span className="text-muted-foreground">{check?.runs[0]?.latencyMs}ms</span>
                         )}
                         {check?.runs[0]?.errorMsg && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs border-[#FF4D6D]/30 text-[#FF4D6D]"
-                          >
+                          <Badge variant="outline" className="text-xs border-[#FF4D6D]/30 text-[#FF4D6D]">
                             {check?.runs[0]?.errorMsg}
                           </Badge>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatTimestamp(check?.runs[0]?.ts)}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{formatTimestamp(check?.runs[0]?.ts)}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-white/70 hover:text-white hover:bg-white/10"
-                          >
+                          <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -291,12 +264,8 @@ export function ChecksList() {
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-[#FF4D6D] hover:bg-[#FF4D6D]/10"
-                            onClick={() => handleDelete(check.id)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Hapus
+                          <DropdownMenuItem className="text-[#FF4D6D] hover:bg-[#FF4D6D]/10" onClick={() => handleDelete(check.id)}>
+                            <Trash2 className="w-4 h-4 mr-2" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -312,18 +281,10 @@ export function ChecksList() {
       <Modal id="add-check">
         <div className="text-white flex flex-col items-center">
           <span>Check</span>
-          <form
-            className="mt-5 space-y-1 w-full"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="mt-5 space-y-1 w-full" onSubmit={handleSubmit(onSubmit)}>
             <fieldset className="fieldset">
               <legend className="fieldset-legend">Type</legend>
-              <select
-                defaultValue="Pick a text editor"
-                className="select border-white border w-full"
-                {...register("type")}
-                onChange={(e) => setType(e.target.value)}
-              >
+              <select defaultValue="Pick a text editor" className="select border-white border w-full" {...register("type")} onChange={(e) => setType(e.target.value)}>
                 <option disabled={true}>Pick a type</option>
                 <option value={"http"}>HTTP</option>
                 <option value={"heartbeat"}>Heartbeat</option>
@@ -331,69 +292,31 @@ export function ChecksList() {
             </fieldset>
             <fieldset className="fieldset">
               <legend className="fieldset-legend">Name</legend>
-              <Input
-                id="name"
-                type="text"
-                {...register("name")}
-                error={errors.name?.message}
-                placeholder="Enter name"
-                required
-              />
+              <Input id="name" type="text" {...register("name")} error={errors.name?.message} placeholder="Enter name" required />
             </fieldset>
             {Type === "http" && (
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">Target</legend>
-                <Input
-                  id="target"
-                  type="text"
-                  {...register("target")}
-                  error={errors.target?.message}
-                  placeholder="Enter password"
-                  required
-                />
+                <Input id="target" type="text" {...register("target")} error={errors.target?.message} placeholder="Enter password" required />
               </fieldset>
             )}
             <fieldset className="fieldset">
               <legend className="fieldset-legend">Interval</legend>
-              <Input
-                id="interval"
-                type="number"
-                {...register("intervalSec")}
-                error={errors.intervalSec?.message}
-                placeholder="Enter password"
-                required
-              />
+              <Input id="interval" type="number" {...register("intervalSec")} error={errors.intervalSec?.message} placeholder="Enter password" required />
             </fieldset>
             <fieldset className="fieldset">
               <legend className="fieldset-legend">Timeout</legend>
-              <Input
-                id="timeout"
-                type="number"
-                {...register("timeoutMs")}
-                error={errors.timeoutMs?.message}
-                placeholder="Enter password"
-                required
-              />
+              <Input id="timeout" type="number" {...register("timeoutMs")} error={errors.timeoutMs?.message} placeholder="Enter password" required />
             </fieldset>
             {Type === "http" && (
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">Success Codes</legend>
-                <Input
-                  id="succes-code"
-                  type="text"
-                  {...register("successCodes")}
-                  error={errors.successCodes?.message}
-                  placeholder="Enter password"
-                  required
-                />
+                <Input id="succes-code" type="text" {...register("successCodes")} error={errors.successCodes?.message} placeholder="Enter password" required />
               </fieldset>
             )}
 
             <div className="flex justify-end mt-5">
-              <button
-                className="btn bg-cyan-500 rounded-2xl w-32 "
-                type="submit"
-              >
+              <button className="btn bg-cyan-500 rounded-2xl w-32 " type="submit">
                 Save
               </button>
             </div>
@@ -403,3 +326,5 @@ export function ChecksList() {
     </Card>
   );
 }
+
+export default ChecksList;

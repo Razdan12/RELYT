@@ -20,6 +20,8 @@ export default function Webhook() {
   const { list, isLoading, GetWebhooks, CreateWebhook, ToggleWebhook, DeleteWebhook } = useWebhookStore();
 
   const [newUrl, setNewUrl] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newSigningSecret, setNewSigningSecret] = useState("");
 
   useEffect(() => {
     if (project?.activeProjectId) {
@@ -39,7 +41,9 @@ export default function Webhook() {
       const normalized = newUrl.match(/^https?:\/\//) ? newUrl : `https://${newUrl}`;
       new URL(normalized);
       setNewUrl("");
-      await CreateWebhook(project.activeProjectId, { url: normalized });
+      setNewName("");
+      setNewSigningSecret("");
+      await CreateWebhook(project.activeProjectId, { name: newName || "", url: normalized, signingSecret: newSigningSecret || undefined });
       await GetWebhooks(project.activeProjectId);
     } catch (err) {
       toast.error("Invalid URL");
@@ -84,9 +88,11 @@ export default function Webhook() {
           <Table>
             <TableHeader className="bg-[#121A26]/50">
               <TableRow className="border-white/10 hover:bg-transparent">
+                <TableHead className="text-white font-medium">Name</TableHead>
                 <TableHead className="text-white font-medium">URL</TableHead>
                 <TableHead className="text-white font-medium">ID</TableHead>
-                <TableHead className="text-white font-medium">Status</TableHead>
+                <TableHead className="text-white font-medium">Enabled</TableHead>
+                <TableHead className="text-white font-medium">Created</TableHead>
                 <TableHead className="text-white font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -105,9 +111,11 @@ export default function Webhook() {
 
               {list?.map((w: any) => (
                 <TableRow key={w.id} className="border-white/10 hover:bg-white/5">
+                  <TableCell className="font-medium text-white">{w.name ?? "-"}</TableCell>
                   <TableCell className="break-words max-w-xs text-white">{w.url}</TableCell>
                   <TableCell className="text-muted-foreground">{w.id}</TableCell>
                   <TableCell className="text-muted-foreground">{w.enabled ? "Enabled" : "Disabled"}</TableCell>
+                  <TableCell className="text-muted-foreground">{w.createdAt ? new Date(w.createdAt).toLocaleString() : "-"}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button size="sm" variant={w.enabled ? "ghost" : "outline"} onClick={() => toggleHook(w.id)}>{w.enabled ? "Disable" : "Enable"}</Button>
@@ -126,8 +134,16 @@ export default function Webhook() {
           <span>Add Webhook</span>
           <form className="mt-5 space-y-1 w-full" onSubmit={addWebhook}>
             <div className="fieldset">
+              <label className="fieldset-legend">Name</label>
+              <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Incident Sink" className="input input-bordered w-full mt-1" />
+            </div>
+            <div className="fieldset">
               <label className="fieldset-legend">URL</label>
               <input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="https://your-webhook.url/path" className="input input-bordered w-full mt-1" />
+            </div>
+            <div className="fieldset">
+              <label className="fieldset-legend">Signing Secret (optional)</label>
+              <input value={newSigningSecret} onChange={(e) => setNewSigningSecret(e.target.value)} placeholder="optional-secret" className="input input-bordered w-full mt-1" />
             </div>
             <div className="flex justify-end mt-5">
               <button className="btn bg-cyan-500 rounded-2xl w-32" type="submit">Add</button>
