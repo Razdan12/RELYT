@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import getErrorMessage from "@/midleware/HelperApi";
+import getErrorMessage from "@/middleware/HelperApi";
 
 import type { Project } from "@/types/Project";
-import { getAllProject } from "@/midleware/Project";
+import { getAllProject } from "@/middleware/Project";
 
 interface PropsState {
   ProjectList: Project[] | null;

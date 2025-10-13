@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import getErrorMessage from "@/midleware/HelperApi";
+import getErrorMessage from "@/middleware/HelperApi";
 
-import { getIncident, getIncidentPerDay, getLatency, getRecentRun, getStatus, getSummary, getUptime } from "@/midleware/Metrics";
+import { getIncident, getIncidentPerDay, getLatency, getRecentRun, getStatus, getSummary, getUptime } from "@/middleware/Metrics";
 import type { Incident, IncidentDay, KPICardProps, Latency, RecentRun, StatusCheck, Uptime } from "@/types/Metrics";
 
 interface PropsState {

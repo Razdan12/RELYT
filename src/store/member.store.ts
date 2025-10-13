@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { addProjectMember, getProjectDetail } from "@/midleware/Member";
-import getErrorMessage from "@/midleware/HelperApi";
+import { addProjectMember, getProjectDetail } from "@/middleware/Member";
+import getErrorMessage from "@/middleware/HelperApi";
 import { toast } from "sonner";
 
 interface MemberState {

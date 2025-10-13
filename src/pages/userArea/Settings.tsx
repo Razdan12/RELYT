@@ -1,8 +1,8 @@
 import useAuthStore from "@/store/auth.store";
 import { useState, useEffect } from "react";
-import { getProjectDetail } from "@/midleware/Member";
-import { createProject, updateProject } from "@/midleware/Project";
-import { getNotifySettings, saveEscalation, saveQuietHours } from "@/midleware/Notify";
+import { getProjectDetail } from "@/middleware/Member";
+import { createProject, updateProject } from "@/middleware/Project";
+import { getNotifySettings, saveEscalation, saveQuietHours } from "@/middleware/Notify";
 import type { EscalationPolicy, NotifySettings } from "@/types/Notify";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +33,7 @@ export default function Settings() {
           setProjectDetail(res);
           setUpdateName(res?.name ?? "");
         }
-        // also try to prefetch notify settings (ignore errors)
+        // also try to prefetch notify settings (handle 404, toast others)
         try {
           const n = await getNotifySettings(project.activeProjectId);
           if (mounted && n) {
@@ -56,7 +56,12 @@ export default function Settings() {
               );
             }
           }
-        } catch {}
+        } catch (err: any) {
+          const status = err?.response?.status;
+          if (status && status !== 404) {
+            toast.error("Failed to load notification settings");
+          }
+        }
       } catch (e) {
         if (mounted) setProjectDetail(null);
       } finally {
@@ -329,7 +334,7 @@ export default function Settings() {
               ))}
               <button className="btn bg-emerald-500 rounded-2xl" onClick={addStep}>Add Step</button>
             </div>
-            <p className="text-xs text-muted-foreground">Centang channel untuk mengaktifkan notifikasi via Email/Slack/Telegram pada setiap langkah. Simpan untuk mengirim konfigurasi ke API.</p>
+            <p className="text-xs text-muted-foreground">Check a channel to enable notifications via Email/Slack/Telegram for each step. Save to send the configuration to the API.</p>
           </div>
         </div>
       </CardContent>

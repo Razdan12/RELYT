@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import getErrorMessage from "@/midleware/HelperApi";
-import { listIncidents, closeIncident } from "@/midleware/Incident";
+import getErrorMessage from "@/middleware/HelperApi";
+import { getAllIncident, closeIncident } from "@/middleware/Incident";
 import type { IncidentItem } from "@/types/Incident";
 import { toast } from "sonner";
 
@@ -19,20 +19,22 @@ const useIncidentStore = create<IncidentState>((set, get) => ({
   GetIncidents: async (projectId, status) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await listIncidents(projectId, status === "open" ? { where: "status:open" } : { status });
+      const res = await getAllIncident(projectId, status === "open" ? { where: "status:open" } : { status });
       set({ list: res.items ?? [], isLoading: false });
     } catch (err) {
       set({ error: getErrorMessage(err), isLoading: false });
     }
   },
   CloseIncident: async (projectId, id, summary = "Closed from UI") => {
+    const previousList = get().list;
+    // optimistic remove
+    set({ list: previousList.filter((i) => i.id !== id) });
     try {
       await closeIncident(projectId, id, summary);
       toast.success("Incident closed");
-      // refresh open list optimistically
-      const state = get();
-      set({ list: state.list.filter((i) => i.id !== id) });
     } catch (err) {
+      // revert on error
+      set({ list: previousList });
       toast.error(getErrorMessage(err));
     }
   },

@@ -10,8 +10,8 @@ import {
   type AuthCredentials,
   type AuthResponse,
   type SignupCredentials,
-} from "@/midleware/auth.api";
-import getErrorMessage from "@/midleware/HelperApi";
+} from "@/middleware/auth.api";
+import getErrorMessage from "@/middleware/HelperApi";
 import { toast } from "sonner";
 
 interface AuthStoreState {

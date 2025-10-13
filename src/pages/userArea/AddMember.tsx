@@ -12,7 +12,7 @@ import {
 import Modal, { openModal } from "@/components/ui/Modal";
 import { toast } from "sonner";
 import useMemberStore from "@/store/member.store";
-import { changeProjectMemberRole, removeProjectMember } from "@/midleware/Member";
+import { changeProjectMemberRole, removeProjectMember } from "@/middleware/Member";
 import Swal from "sweetalert2";
 import useAuthStore from "@/store/auth.store";
 

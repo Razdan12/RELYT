@@ -46,9 +46,9 @@ import Modal, { closeModal, openModal } from "@/components/ui/Modal";
 import { checkSchema, type CheckFormValues } from "@/schema/check.schema";
 import { useForm, type Resolver } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { createCheck, DeleteCheck } from "@/midleware/HttpCheck.api";
+import { createCheck, DeleteCheck } from "@/middleware/HttpCheck.api";
 import { toast } from "sonner";
-import getErrorMessage from "@/midleware/HelperApi";
+import getErrorMessage from "@/middleware/HelperApi";
 
 function StatusBadge(status: boolean) {
   const statusConfig = {

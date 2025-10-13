@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import getErrorMessage from "@/midleware/HelperApi";
-import { getWebhooks, createWebhook, updateWebhook, deleteWebhook } from "@/midleware/Webhook";
+import getErrorMessage from "@/middleware/HelperApi";
+import { getWebhooks, createWebhook, updateWebhook, deleteWebhook } from "@/middleware/Webhook";
 import { toast } from "sonner";
 
 interface WebhookItem {

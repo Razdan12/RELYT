@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import getErrorMessage from "@/midleware/HelperApi";
+import getErrorMessage from "@/middleware/HelperApi";
 
 import type { Paginate } from "@/types/ResponApi";
 import type { Check } from "@/types/Check";
-import type { CheckItem } from "@/midleware/HttpCheck.api";
-import { getAllCheck } from "@/midleware/HttpCheck.api";
+import type { CheckItem } from "@/middleware/HttpCheck.api";
+import { getAllCheck } from "@/middleware/HttpCheck.api";
 
 interface PropsState {
   checkList: Paginate<Check> | CheckItem[] | null;
