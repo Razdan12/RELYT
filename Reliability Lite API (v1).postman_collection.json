@@ -1,0 +1,2820 @@
+{
+	"info": {
+		"_postman_id": "863bfedd-5adb-4bc8-9493-0d915e1dab82",
+		"name": "Reliability Lite API (v1)",
+		"description": "Comprehensive collection for Reliability Lite (multi-project). Includes Auth, Project, Subscription, Checks (HTTP/Heartbeat), Incidents, Postmortem & Share Link, Webhooks, Alerts/Notify (Quiet Hours & Escalation), Status Page Public, Metrics Dashboard, API Keys, and Audit Log.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18857945",
+		"_collection_link": "https://www.postman.com/warped-crescent-311885/reliability/collection/svydus5/reliability-lite-api-v1?action=share&source=collection_link&creator=18857945"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201 or 200\", function () {",
+									"  pm.expect([200,201]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"userd@example.com\",\n  \"password\": \"strongPass123!\",\n  \"name\": \"User Demo\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+									"const json = pm.response.json() || {};",
+									"const data = json.data || {};",
+									"pm.test(\"Access token exists\", function () { pm.expect(data.token && data.token.access_token).to.exist; });",
+									"if (data.token && data.token.access_token) pm.environment.set(\"access_token\", data.token.access_token);",
+									"if (data.token && data.token.refresh_token) pm.environment.set(\"refresh_token\", data.token.refresh_token);",
+									"if (data.activeProjectId) pm.environment.set(\"projectId\", data.activeProjectId);",
+									"if (Array.isArray(data.projects) && data.projects.length && !pm.environment.get(\"projectId\")) {",
+									"  pm.environment.set(\"projectId\", data.projects[0].projectId);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.token && data.token.access_token) pm.environment.set(\"access_token\", data.token.access_token);",
+									"if (data.token && data.token.refresh_token) pm.environment.set(\"refresh_token\", data.token.refresh_token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/auth/refresh-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forget Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Accepted 200/204/202\", function () {",
+									"  pm.expect([200,202,204]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/auth/forget-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"forget-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status OK\", function () {",
+									"  pm.expect([200,201]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"<paste-token-from-email>\",\n  \"newPassword\": \"NewPass!234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Project",
+			"item": [
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Created\", function () { pm.expect([200,201]).to.include(pm.response.code); });",
+									"const id = (((pm.response.json()||{}).data)||{}).id;",
+									"if (id) pm.environment.set(\"projectId\", id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Demo Project\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Projects",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/show-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"show-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Project Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/show-one/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"show-one",
+								"{{projectId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"7581901a-bd9d-49a2-8220-dcf845041eef\",\n  \"role\": \"MEMBER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/member/add",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"member",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Member Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"<USER_UUID>\",\n  \"role\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/member/change-role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"member",
+								"change-role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"<USER_UUID>\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/project/member/remove",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"project",
+								"member",
+								"remove"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subscription",
+			"item": [
+				{
+					"name": "Get Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/subscription/show-one",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"subscription",
+								"show-one"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upsert Subscription (manual)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Upsert OK\", function(){ pm.expect([200,201]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"provider\": \"manual\",\n  \"externalId\": \"INV-001\",\n  \"plan\": \"pro\",\n  \"status\": \"active\",\n  \"trialEndsAt\": \"2025-12-31T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/subscription/upsert",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"subscription",
+								"upsert"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/subscription/cancel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"subscription",
+								"cancel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resume Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/subscription/resume",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"subscription",
+								"resume"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Trial",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"trialEndsAt\": \"2025-12-31T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/subscription/set-trial",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"subscription",
+								"set-trial"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Checks",
+			"item": [
+				{
+					"name": "List Checks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/show-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"show-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create HTTP Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Created HTTP Check\", function(){ pm.expect([200,201]).to.include(pm.response.code); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.id) pm.environment.set(\"checkId\", data.id);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"http\",\n  \"name\": \"testsasa\",\n  \"target\": \"https://httpbin.org/status/500\",\n  \"intervalSec\": 60,\n  \"timeoutMs\": 5000,\n  \"successCodes\": [\n    200,\n    204\n  ],\n  \"regions\": [\n    \"global\",\n    \"ap-sg\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Heartbeat Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Created Heartbeat Check\", function(){ pm.expect([200,201]).to.include(pm.response.code); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.id) pm.environment.set(\"checkId\", data.id);",
+									"if (data.token) pm.environment.set(\"heartbeatToken\", data.token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"heartbeat\",\n  \"name\": \"Cron 10m\",\n  \"intervalSec\": 600,\n  \"timeoutMs\": 5000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Check Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/show-one/{{checkId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"show-one",
+								"{{checkId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Check",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Homepage - updated\",\n  \"intervalSec\": 60,\n  \"timeoutMs\": 5000,\n  \"successCodes\": [\n    200,\n    204,\n    201\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/update/{{checkId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"update",
+								"{{checkId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rotate Heartbeat Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/rotate-token/{{checkId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"rotate-token",
+								"{{checkId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Check",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/delete/{{checkId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"delete",
+								"{{checkId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Heartbeat Ping (public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Heartbeat ping accepted\", function(){",
+									"  pm.expect([200,201,202,204]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/check/hb/{{heartbeatToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"check",
+								"hb",
+								"{{heartbeatToken}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Incidents",
+			"item": [
+				{
+					"name": "List Open Incidents",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", function(){ pm.response.to.have.status(200); });",
+									"const arr = (pm.response.json()||{}).data || [];",
+									"console.log(arr.items[0].id)",
+									"if (Array.isArray(arr.items) && arr.items.length) pm.environment.set(\"incidentId\", arr.items[0].id);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/incident/show-all?where=status:open",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"incident",
+								"show-all"
+							],
+							"query": [
+								{
+									"key": "where",
+									"value": "status:open"
+								},
+								{
+									"key": "paginate",
+									"value": "false",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Closed Incidents",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/incident/show-all?status=closed",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"incident",
+								"show-all"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "closed"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incident Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/incident/show-one/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"incident",
+								"show-one",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close Incident",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Closed OK\", function(){ pm.expect([200,204]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"summary\": \"Fixed deployment misconfig\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/incident/close/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"incident",
+								"close",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Postmortem",
+			"item": [
+				{
+					"name": "Get Postmortem",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status 200/404\", function(){ pm.expect([200,404]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/postmortem/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"postmortem",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upsert Postmortem",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Saved\", function(){ pm.expect([200,201]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Incident #123 Postmortem\",\n  \"contentMd\": \"## RCA\\n- Root cause ...\\n## Action Items\\n- ...\",\n  \"isPublic\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/postmortem/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"postmortem",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Share Link",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Share token created\", function(){ pm.expect([200,201]).to.include(pm.response.code); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.token) pm.environment.set(\"shareToken\", data.token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ttlMin\": 1440\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/postmortem/share/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"postmortem",
+								"share",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resolve Share Link (public)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/postmortem/share/resolve/{{shareToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"postmortem",
+								"share",
+								"resolve",
+								"{{shareToken}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Public Postmortem",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/postmortem/public/{{incidentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"postmortem",
+								"public",
+								"{{incidentId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "List Webhooks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/show-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"show-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Webhook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Webhook created\", function(){ pm.expect([200,201]).to.include(pm.response.code); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.id) pm.environment.set(\"webhookId\", data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Incident Sink\",\n  \"url\": \"https://hooks.example.com/in\",\n  \"signingSecret\": \"optional-secret\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Webhook",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Incident Sink v2\",\n  \"url\": \"https://hooks.example.com/in2\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/update/{{webhookId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"update",
+								"{{webhookId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Webhook",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/delete/{{webhookId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"delete",
+								"{{webhookId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deliveries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Deliveries 200\", function(){ pm.response.to.have.status(200); });",
+									"const arr = (pm.response.json()||{}).data || [];",
+									"if (Array.isArray(arr) && arr.length) pm.environment.set(\"deliveryId\", arr[0].id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/deliveries?webhookId={{webhookId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"deliveries"
+							],
+							"query": [
+								{
+									"key": "webhookId",
+									"value": "{{webhookId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Replay Delivery",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/webhook/replay/{{deliveryId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"webhook",
+								"replay",
+								"{{deliveryId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Alerts & Notify",
+			"item": [
+				{
+					"name": "Get Notify Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"200 OK\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/notify/settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"notify",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Quiet Hours",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Saved\", function(){ pm.expect([200,201]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"timezone\": \"Asia/Jakarta\",\n  \"quietFrom\": \"22:00\",\n  \"quietTo\": \"07:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/notify/settings/notification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"notify",
+								"settings",
+								"notification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Escalation Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Saved\", function(){ pm.expect([200,201]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Default\",\n  \"enabled\": true,\n  \"steps\": [\n    {\n      \"afterMin\": 0,\n      \"channels\": [\n        \"email\"\n      ]\n    },\n    {\n      \"afterMin\": 10,\n      \"channels\": [\n        \"slack\"\n      ]\n    },\n    {\n      \"afterMin\": 30,\n      \"channels\": [\n        \"telegram\"\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/notify/settings/escalation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"notify",
+								"settings",
+								"escalation"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Status Page",
+			"item": [
+				{
+					"name": "Get Config",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/config",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upsert Config",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Config saved\", function(){ pm.expect([200,201]).to.include(pm.response.code); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"slug\": \"{{slug}}\",\n  \"isPublic\": true,\n  \"title\": \"Status Demo\",\n  \"description\": \"Layanan stabil\",\n  \"theme\": {\n    \"accent\": \"#00E5FF\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/config",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"config"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Components",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/components",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"components"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upsert Component",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"API\",\n  \"status\": \"operational\",\n  \"order\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/components",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"components"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Component",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/components/{{statusComponentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"components",
+								"{{statusComponentId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Public Overview",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Public 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/public/{{slug}}/overview",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"public",
+								"{{slug}}",
+								"overview"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Public Incidents",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Public 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/public/{{slug}}/incidents",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"public",
+								"{{slug}}",
+								"incidents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Uptime Badge (SVG)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/status/public/{{slug}}/badge.svg",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"status",
+								"public",
+								"{{slug}}",
+								"badge.svg"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Metrics",
+			"item": [
+				{
+					"name": "Summary (24h)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "range",
+									"value": "24h",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Summary (7d)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/summary?range=7d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "range",
+									"value": "7d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Uptime (hourly)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/uptime?from=2025-10-01T00:00:00Z&to=2025-10-02T00:00:00Z&bucket=hour",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"uptime"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2025-10-01T00:00:00Z"
+								},
+								{
+									"key": "to",
+									"value": "2025-10-02T00:00:00Z"
+								},
+								{
+									"key": "bucket",
+									"value": "hour"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Latency (hourly)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/latency?from=2025-10-01T00:00:00Z&to=2025-10-02T00:00:00Z&bucket=hour",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"latency"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2025-10-01T00:00:00Z"
+								},
+								{
+									"key": "to",
+									"value": "2025-10-02T00:00:00Z"
+								},
+								{
+									"key": "bucket",
+									"value": "hour"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incidents per day",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/incidents-per-day?range=7d",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"incidents-per-day"
+							],
+							"query": [
+								{
+									"key": "range",
+									"value": "7d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Checks Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/checks-status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"checks-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recent Runs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/metrics/runs/recent?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"metrics",
+								"runs",
+								"recent"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incident list",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/incident/open-brief",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"incident",
+								"open-brief"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "open",
+									"disabled": true
+								},
+								{
+									"key": "paginate",
+									"value": "false",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Keys",
+			"item": [
+				{
+					"name": "List API Keys",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/apikey/show-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"apikey",
+								"show-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"API key created\", function(){ pm.expect([200,201]).to.include(pm.response.code); });",
+									"const data = (pm.response.json()||{}).data||{};",
+									"if (data.id) pm.environment.set(\"apiKeyId\", data.id);",
+									"if (data.key) console.log(\"API KEY (copy once):\", data.key);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"label\": \"{{apiKeyLabel}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/v1/apikey/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"apikey",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Metrics 200\", function(){ pm.response.to.have.status(200); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/apikey/delete/{{apiKeyId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"apikey",
+								"delete",
+								"{{apiKeyId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Audit",
+			"item": [
+				{
+					"name": "List Audit (all)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/audit/show-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"audit",
+								"show-all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Audit (type filter)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-project-id",
+								"value": "{{projectId}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/audit/show-all?type=create_check",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"audit",
+								"show-all"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "create_check"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-attach Authorization and x-project-id if variables exist and not already present",
+					"(function () {",
+					"  try {",
+					"    const token = pm.environment.get(\"access_token\") || pm.collectionVariables.get(\"access_token\");",
+					"    const projectId = pm.environment.get(\"projectId\") || pm.collectionVariables.get(\"projectId\");",
+					"",
+					"    // Add Authorization",
+					"    if (token && !pm.request.headers.has('Authorization')) {",
+					"      pm.request.headers.add({ key: 'Authorization', value: `Bearer ${token}` });",
+					"    }",
+					"",
+					"    // Add x-project-id unless endpoint is auth or public",
+					"    const url = pm.request.url.toString();",
+					"    const isPublic = /\\/v1\\/check\\/hb\\/|\\/v1\\/status\\/public\\/|\\/v1\\/postmortem\\/share\\/resolve\\/|\\/v1\\/auth\\//.test(url);",
+					"    if (projectId && !isPublic && !pm.request.headers.has('x-project-id')) {",
+					"      pm.request.headers.add({ key: 'x-project-id', value: projectId });",
+					"    }",
+					"  } catch (e) {",
+					"    console.log('pre-request error:', e.message);",
+					"  }",
+					"})();"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "projectId",
+			"value": ""
+		},
+		{
+			"key": "heartbeatToken",
+			"value": ""
+		},
+		{
+			"key": "slug",
+			"value": "demo-project"
+		},
+		{
+			"key": "incidentId",
+			"value": ""
+		},
+		{
+			"key": "webhookId",
+			"value": ""
+		},
+		{
+			"key": "deliveryId",
+			"value": ""
+		},
+		{
+			"key": "apiKeyLabel",
+			"value": "CI/CD"
+		}
+	]
+}
